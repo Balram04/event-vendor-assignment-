@@ -29,7 +29,7 @@ router.post('/events', async (req, res) => {
 // Create Vendor Profile (map to existing user with role vendor)
 router.post('/vendors', async (req, res) => {
   try {
-    const { userId, serviceType } = req.body;
+    const { userId, serviceType } = req.body;  //using userId to link vendor profile to existing user because we already have role-based users
 
     const vendor = await Vendor.create({ userId, serviceType });
 
