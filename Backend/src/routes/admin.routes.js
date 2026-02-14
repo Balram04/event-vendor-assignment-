@@ -87,6 +87,46 @@ router.patch('/events/:id/status', async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
+// Evaluate Vendor after Event Completion
+router.post('/assignments/:id/evaluate', async (req, res) => {
+  try {
+    const { score } = req.body; // e.g., 1–5
+    const assignmentId = req.params.id;
+
+    const assignment = await Assignment.findById(assignmentId).populate('eventId');
+    if (!assignment) return res.status(404).json({ message: 'Assignment not found' });
+
+    // Rule: Event must be completed
+    if (assignment.eventId.status !== 'completed') {
+      return res.status(400).json({ message: 'Cannot evaluate vendor before event is completed' });
+    }
+
+    assignment.score = score;
+    await assignment.save();
+
+    // Update vendor performance
+    const vendor = await Vendor.findById(assignment.vendorId);
+
+    const completedAssignments = await Assignment.find({
+      vendorId: vendor._id,
+      status: 'completed',
+      score: { $exists: true }
+    });
+
+    const totalScore = completedAssignments.reduce((sum, a) => sum + a.score, 0);
+    const avgScore = totalScore / completedAssignments.length;
+
+    vendor.performanceScore = avgScore;
+    vendor.totalEventsHandled = completedAssignments.length;
+    await vendor.save();
+
+    res.json({ message: 'Evaluation saved', assignment, vendor });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
  
 
 module.exports = router;
