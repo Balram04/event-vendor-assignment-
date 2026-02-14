@@ -26,6 +26,17 @@ router.post('/events', async (req, res) => {
   }
 });
 
+// Get all events (Admin view)
+router.get('/events', async (req, res) => {
+  try {
+    const events = await Event.find().sort({ createdAt: -1 });
+    res.json(events);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
 // Create Vendor Profile (map to existing user with role vendor)
 router.post('/vendors', async (req, res) => {
   try {
