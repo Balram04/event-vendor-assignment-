@@ -56,4 +56,37 @@ router.post('/assignments', async (req, res) => {
   }
 });
 
+// Update Event Status (lifecycle)
+router.patch('/events/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body; // draft, scheduled, ongoing, completed
+    const eventId = req.params.id;
+
+    const event = await Event.findById(eventId);
+    if (!event) return res.status(404).json({ message: 'Event not found' });
+
+    // If trying to mark event as completed, check all assignments
+    if (status === 'completed') {
+      const pending = await Assignment.find({
+        eventId,
+        status: { $nin: ['completed', 'rejected'] }
+      });
+
+      if (pending.length > 0) {
+        return res.status(400).json({
+          message: 'Cannot complete event until all vendor assignments are completed or rejected'
+        });
+      }
+    }
+
+    event.status = status;
+    await event.save();
+
+    res.json(event);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+ 
+
 module.exports = router;
