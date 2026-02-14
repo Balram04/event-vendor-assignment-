@@ -39,8 +39,12 @@ router.post('/login', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
-
+    
+     res.cookie('token', token, {
+      httpOnly: true,     
+    });
     res.json({ userId: user._id,token, role: user.role });
+    
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

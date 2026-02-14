@@ -5,10 +5,12 @@ const connectDB = require('./src/config/db');
 const authRoutes = require('./src/routes/auth.routes');
 const adminRoutes = require('./src/routes/admin.routes');
 const vendorRoutes = require('./src/routes/vendor.routes');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 
 app.use(cors());
+app.use(cookieParser());
 app.use(express.json());
 
 
