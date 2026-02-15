@@ -15,7 +15,8 @@ router.get('/assignments', async (req, res) => {
     if (!vendor) return res.status(404).json({ message: 'Vendor profile not found' });
 
     const assignments = await Assignment.find({ vendorId: vendor._id })
-      .populate('eventId', 'title date status');
+      .populate('eventId', 'title date status')
+      .populate('vendorId', 'serviceType');
 
     res.json(assignments);
   } catch (err) {
@@ -120,7 +121,8 @@ router.get('/performance-summary', async (req, res) => {
     })
       .sort({ updatedAt: -1 })
       .limit(5)
-      .populate('eventId', 'title date');
+      .populate('eventId', 'title date')
+      .populate('vendorId', 'serviceType');
 
     res.json({
       totalEventsHandled: summary[0]?.totalEventsHandled || 0,
