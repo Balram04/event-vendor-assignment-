@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import CreatEvent from './CreatEvent';
+import CreatVendors from './CreatVendors';
 import AssignVendor from './AssignVendor';
 import VendorPerformance from './VendorPerformance';
 
@@ -41,6 +42,16 @@ export default function AdminDashboard() {
               Events
             </button>
             <button
+              onClick={() => setActiveTab('vendors')}
+              className={`flex-1 px-6 py-3 font-semibold transition ${
+                activeTab === 'vendors'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Vendors
+            </button>
+            <button
               onClick={() => setActiveTab('assign')}
               className={`flex-1 px-6 py-3 font-semibold transition ${
                 activeTab === 'assign'
@@ -66,6 +77,7 @@ export default function AdminDashboard() {
         {/* Tab Content */}
         <div className='bg-white rounded-lg shadow-md p-6'>
           {activeTab === 'events' && <CreatEvent />}
+          {activeTab === 'vendors' && <CreatVendors />}
           {activeTab === 'assign' && <AssignVendor />}
           {activeTab === 'performance' && <VendorPerformance />}
         </div>
