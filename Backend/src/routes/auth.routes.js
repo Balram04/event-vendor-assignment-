@@ -3,12 +3,15 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { auth } = require('../middlewares/auth');
+const { validateSignUpData, validateLoginData } = require('../utils/validation');
 
 const router = express.Router();
 
 // Signup 
 router.post('/signup', async (req, res) => {
   try {
+    validateSignUpData(req); // Validate signup data for perfect data integrity
+    
     const { name, email, password, role } = req.body;
 
     const existing = await User.findOne({ email });
@@ -28,6 +31,9 @@ router.post('/signup', async (req, res) => {
 // Login
 router.post('/login', async (req, res) => {
   try {
+    // Validate login data
+    validateLoginData(req);
+    
     const { email, password } = req.body;
     console.log('Login attempt for:', email);
 
@@ -56,13 +62,12 @@ router.post('/login', async (req, res) => {
     // Set HTTP-only cookie
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      secure: false,
+      sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000, // 1 day
-      path: '/' // Ensure cookie is sent with all requests
+      path: '/' // Cookie available on all routes
     };
     
-    console.log('Setting cookie with options:', cookieOptions);
     res.cookie('token', token, cookieOptions);
     
     console.log('Cookie set for user:', user.email);

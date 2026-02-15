@@ -13,7 +13,17 @@ const validateSignUpData = (req) => {
   }
 };
 
+const validateLoginData = (req) => {
+  const { email, password } = req.body;
+  if (!email || !validator.isEmail(email)) {
+    throw new Error("Email is not valid!");
+  } else if (!password || password.trim().length === 0) {
+    throw new Error("Password is required!");
+  }
+};
+
+
 module.exports = {
   validateSignUpData,
-  validateEditProfileData,
+  validateLoginData,
 };
