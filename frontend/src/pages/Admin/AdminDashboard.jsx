@@ -1,73 +1,75 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api/axios';
+import api from '../../api/axios';
+import CreatEvent from './CreatEvent';
+import AssignVendor from './AssignVendor';
+import VendorPerformance from './VendorPerformance';
 
 export default function AdminDashboard() {
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState('');
-  const [events, setEvents] = useState([]);
-  const [eventId, setEventId] = useState('');
-  const [vendorId, setVendorId] = useState('');
   const navigate = useNavigate();
-
-  const fetchEvents = async () => {
-    const res = await api.get('/admin/events');
-    setEvents(res.data);
-  };
-
-  const createEvent = async () => {
-    await api.post('/admin/events', { title, date });
-    setTitle('');
-    setDate('');
-    fetchEvents();
-  };
-
-  const assignVendor = async () => {
-    await api.post('/admin/assignments', { eventId, vendorId });
-    alert('Vendor assigned');
-  };
-
-  const updateStatus = async (id, status) => {
-    await api.patch(`/admin/events/${id}/status`, { status });
-    fetchEvents();
-  };
+  const [activeTab, setActiveTab] = useState('events');
 
   const handleLogout = async () => {
     await api.post('/auth/logout');
     navigate('/login');
   };
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
   return (
-    <div>
-      <nav className='bg-gray-800 text-white p-4 mb-6 justify-between flex items-center'>
-        <h1 className='text-xl font-semibold'>Event Management Admin</h1>
-        <button onClick={handleLogout} className='ml-4 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded '>Logout  </button>
+    <div className="min-h-screen bg-gray-100">
+      <nav className='bg-gray-800 text-white p-4 flex justify-between items-center'>
+        <h1 className='text-2xl font-bold'>Admin Dashboard</h1>
+        <button 
+          onClick={handleLogout} 
+          className='bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition'
+        >
+          Logout
+        </button>
       </nav>
-      
 
-      <h3>Create Event</h3>
-      <input placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} />
-      <input type="date" value={date} onChange={e => setDate(e.target.value)} />
-      <button onClick={createEvent}>Create</button>
-
-      <h3>Assign Vendor</h3>
-      <input placeholder="Event ID" onChange={e => setEventId(e.target.value)} />
-      <input placeholder="Vendor ID" onChange={e => setVendorId(e.target.value)} />
-      <button onClick={assignVendor}>Assign</button>
-
-      <h3>Events</h3>
-      {events.map(event => (
-        <div key={event._id} style={{ border: '1px solid #ccc', margin: '8px', padding: '8px' }}>
-          <p><b>{event.title}</b> – {event.status}</p>
-          <button onClick={() => updateStatus(event._id, 'scheduled')}>Schedule</button>
-          <button onClick={() => updateStatus(event._id, 'ongoing')}>Start</button>
-          <button onClick={() => updateStatus(event._id, 'completed')}>Complete</button>
+      <div className='container mx-auto p-6'>
+        {/* Tabs */}
+        <div className='bg-white rounded-lg shadow-md mb-6'>
+          <div className='flex border-b'>
+            <button
+              onClick={() => setActiveTab('events')}
+              className={`flex-1 px-6 py-3 font-semibold transition ${
+                activeTab === 'events'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Events
+            </button>
+            <button
+              onClick={() => setActiveTab('assign')}
+              className={`flex-1 px-6 py-3 font-semibold transition ${
+                activeTab === 'assign'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Assign Vendors
+            </button>
+            <button
+              onClick={() => setActiveTab('performance')}
+              className={`flex-1 px-6 py-3 font-semibold transition ${
+                activeTab === 'performance'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Performance
+            </button>
+          </div>
         </div>
-      ))}
+
+        {/* Tab Content */}
+        <div className='bg-white rounded-lg shadow-md p-6'>
+          {activeTab === 'events' && <CreatEvent />}
+          {activeTab === 'assign' && <AssignVendor />}
+          {activeTab === 'performance' && <VendorPerformance />}
+        </div>
+      </div>
     </div>
-  );
+  )
 }

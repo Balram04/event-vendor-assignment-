@@ -1,7 +1,7 @@
 import Login from "./components/Login"
 import Signup from "./components/Signup"
-import AdminDashboard from "./pages/AdminDashboard"
-import VendorDashboard from "./pages/VendorDashboard"
+import AdminDashboard from "./pages/Admin/AdminDashboard"
+import VendorDashboard from "./pages/Vendor/VendorDashboard"
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom"
 
 const App = () => {
