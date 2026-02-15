@@ -1,14 +1,19 @@
-import Login from "./pages/Login"
-import Signup from "./pages/signup"
-import { BrowserRouter, Route, Routes } from "react-router-dom"
+import Login from "./components/Login"
+import Signup from "./components/Signup"
+import AdminDashboard from "./pages/AdminDashboard"
+import VendorDashboard from "./pages/VendorDashboard"
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom"
 
 const App = () => {
   return (
   <>
    <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/signup" element={<Signup/>}/>
         <Route path="/login" element={<Login/>}/>
+        <Route path="/admin" element={<AdminDashboard/>}/>
+        <Route path="/vendor" element={<VendorDashboard/>}/>
       </Routes>
   </BrowserRouter>
      </>
