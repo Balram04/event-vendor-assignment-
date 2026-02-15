@@ -3,6 +3,7 @@ const { auth, roleCheck } = require('../middlewares/auth');
 const Event = require('../models/Event');
 const Vendor = require('../models/Vendor');
 const Assignment = require('../models/Assignment');
+const User = require('../models/User');
 
 const router = express.Router();
 
@@ -31,6 +32,52 @@ router.get('/events', async (req, res) => {
   try {
     const events = await Event.find().sort({ createdAt: -1 });
     res.json(events);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get all vendors
+router.get('/vendors', async (req, res) => {
+  try {
+    const vendors = await Vendor.find()
+      .populate('userId', 'name email')
+      .sort({ createdAt: -1 });
+    res.json(vendors);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get available vendor users (users with role 'vendor' who don't have vendor profiles yet)
+router.get('/available-vendor-users', async (req, res) => {
+  try {
+    // Get all users with role 'vendor'
+    const vendorUsers = await User.find({ role: 'vendor' }).select('_id name email');
+    
+    // Get all vendor profiles
+    const existingVendors = await Vendor.find().select('userId'); 
+    const existingUserIds = existingVendors.map(v => v.userId.toString());
+    
+    // Filter out users who already have vendor profiles
+    const availableUsers = vendorUsers.filter(
+      user => !existingUserIds.includes(user._id.toString())
+    );
+    
+    res.json(availableUsers);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get all assignments
+router.get('/assignments', async (req, res) => {
+  try {
+    const assignments = await Assignment.find()
+      .populate('eventId', 'title date status')
+      .populate('vendorId')
+      .sort({ createdAt: -1 });
+    res.json(assignments);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
