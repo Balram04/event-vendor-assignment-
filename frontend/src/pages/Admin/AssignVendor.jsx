@@ -12,6 +12,14 @@ const AssignVendor = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // Filter states
+  const [filters, setFilters] = useState({
+    status: '',
+    event: '',
+    vendor: '',
+    service: ''
+  });
 
   useEffect(() => {
     fetchData();
@@ -32,6 +40,9 @@ const AssignVendor = () => {
     }
   };
 
+  // Filter out completed events from assignment dropdown
+  const availableEvents = events.filter(event => event.status !== 'completed');
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -49,6 +60,36 @@ const AssignVendor = () => {
       setLoading(false);
     }
   };
+
+  // Filter assignments based on selected filters
+  const filteredAssignments = assignments.filter((assignment) => {
+    if (filters.status && assignment.status !== filters.status) {
+      return false;
+    }
+    if (filters.event && assignment.eventId?._id !== filters.event) {
+      return false;
+    }
+    if (filters.vendor && assignment.vendorId?._id !== filters.vendor) {
+      return false;
+    }
+    if (filters.service && assignment.vendorId?.serviceType !== filters.service) {
+      return false;
+    }
+    return true;
+  });
+
+  // Reset all filters
+  const handleResetFilters = () => {
+    setFilters({
+      status: '',
+      event: '',
+      vendor: '',
+      service: ''
+    });
+  };
+
+  // Get unique service types from vendors
+  const serviceTypes = [...new Set(vendors.map(v => v.serviceType))].filter(Boolean);
 
   return (
     <div className="space-y-6">
@@ -73,9 +114,9 @@ const AssignVendor = () => {
               required
             >
               <option value="">Choose an event...</option>
-              {events.map((event) => (
+              {availableEvents.map((event) => (
                 <option key={event._id} value={event._id}>
-                  {event.title} - {new Date(event.date).toLocaleDateString()}
+                  {event.title} - {new Date(event.date).toLocaleDateString()} ({event.status})
                 </option>
               ))}
             </select>
@@ -113,7 +154,101 @@ const AssignVendor = () => {
       {/* Assignments List */}
       <div>
         <h3 className="text-xl font-semibold mb-4">Current Assignments</h3>
+        
+        {/* Filters */}
+        <div className="bg-gray-50 p-4 rounded-lg mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Status Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Status
+              </label>
+              <select
+                value={filters.status}
+                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="accepted">Accepted</option>
+                <option value="rejected">Rejected</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+
+            {/* Event Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Event
+              </label>
+              <select
+                value={filters.event}
+                onChange={(e) => setFilters({ ...filters, event: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Events</option>
+                {events.map((event) => (
+                  <option key={event._id} value={event._id}>
+                    {event.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Vendor Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Vendor
+              </label>
+              <select
+                value={filters.vendor}
+                onChange={(e) => setFilters({ ...filters, vendor: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Vendors</option>
+                {vendors.map((vendor) => (
+                  <option key={vendor._id} value={vendor._id}>
+                    {vendor.userId?.name || 'Unknown'}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Service Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Service Type
+              </label>
+              <select
+                value={filters.service}
+                onChange={(e) => setFilters({ ...filters, service: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Services</option>
+                {serviceTypes.map((service) => (
+                  <option key={service} value={service}>
+                    {service}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Reset Button */}
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={handleResetFilters}
+              className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition"
+            >
+              Reset Filters
+            </button>
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
+          <div className="mb-2 text-sm text-gray-600">
+            Showing {filteredAssignments.length} of {assignments.length} assignments
+          </div>
           <table className="min-w-full bg-white border border-gray-200">
             <thead className="bg-gray-100">
               <tr>
@@ -124,14 +259,14 @@ const AssignVendor = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {assignments.length === 0 ? (
+              {filteredAssignments.length === 0 ? (
                 <tr>
                   <td colSpan="4" className="px-4 py-8 text-center text-gray-500">
-                    No assignments yet
+                    No assignments match the selected filters
                   </td>
                 </tr>
               ) : (
-                assignments.map((assignment) => (
+                filteredAssignments.map((assignment) => (
                   <tr key={assignment._id}>
                     <td className="px-4 py-3 text-sm">{assignment.eventId?.title}</td>
                     <td className="px-4 py-3 text-sm">{assignment.vendorId?.userId?.name}</td>

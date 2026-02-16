@@ -28,10 +28,12 @@ function Signup() {
         withCredentials: true
       })
 
-      setSuccess('Account created successfully! Redirecting to login...')
+      // Display the message from backend (different for admin vs vendor)
+      setSuccess(response.data.message || 'Account created successfully!')
+      
       setTimeout(() => {
         navigate('/login')
-      }, 2000)
+      }, response.data.requiresProfileSetup ? 4000 : 2000) // Longer delay for vendor to read the message
     } catch (err) {
       console.log('Error response:', err.response)
       setError(err.response?.data?.message || 'Signup failed. Please try again.')
@@ -119,7 +121,7 @@ function Signup() {
             </div>
 
             {/* Role Selection */}
-            <div className='space-y-2'>
+            {/* <div className='space-y-2'>
               <label htmlFor='role' className='block text-sm font-medium text-gray-700'>
                 Role
               </label>
@@ -134,7 +136,7 @@ function Signup() {
                 <option value='vendor'>Vendor</option>
                 <option value='admin'>Admin</option>
               </select>
-            </div>
+            </div> */}
 
             {/* Submit Button */}
             <button

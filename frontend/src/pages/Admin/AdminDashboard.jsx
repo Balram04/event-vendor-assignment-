@@ -32,16 +32,6 @@ export default function AdminDashboard() {
         <div className='bg-white rounded-lg shadow-md mb-6'>
           <div className='flex border-b'>
             <button
-              onClick={() => setActiveTab('events')}
-              className={`flex-1 px-6 py-3 font-semibold transition ${
-                activeTab === 'events'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Events
-            </button>
-            <button
               onClick={() => setActiveTab('vendors')}
               className={`flex-1 px-6 py-3 font-semibold transition ${
                 activeTab === 'vendors'
@@ -50,6 +40,16 @@ export default function AdminDashboard() {
               }`}
             >
               Vendors
+            </button>
+            <button
+              onClick={() => setActiveTab('events')}
+              className={`flex-1 px-6 py-3 font-semibold transition ${
+                activeTab === 'events'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Events
             </button>
             <button
               onClick={() => setActiveTab('assign')}
@@ -76,8 +76,8 @@ export default function AdminDashboard() {
 
         {/* Tab Content */}
         <div className='bg-white rounded-lg shadow-md p-6'>
-          {activeTab === 'events' && <CreatEvent />}
           {activeTab === 'vendors' && <CreatVendors />}
+          {activeTab === 'events' && <CreatEvent />}
           {activeTab === 'assign' && <AssignVendor />}
           {activeTab === 'performance' && <VendorPerformance />}
         </div>

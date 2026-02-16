@@ -75,7 +75,13 @@ router.get('/assignments', async (req, res) => {
   try {
     const assignments = await Assignment.find()
       .populate('eventId', 'title date status')
-      .populate('vendorId')
+      .populate({
+        path: 'vendorId',
+        populate: {
+          path: 'userId',
+          select: 'name email'
+        }
+      })
       .sort({ createdAt: -1 });
     res.json(assignments);
   } catch (err) {
@@ -101,6 +107,16 @@ router.post('/vendors', async (req, res) => {
 router.post('/assignments', async (req, res) => {
   try {
     const { eventId, vendorId } = req.body;
+
+    // Check if event exists and is not completed
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+    
+    if (event.status === 'completed') {
+      return res.status(400).json({ message: 'Cannot assign vendor to a completed event' });
+    }
 
     const assignment = await Assignment.create({ eventId, vendorId });
 

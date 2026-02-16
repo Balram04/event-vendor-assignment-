@@ -16,7 +16,13 @@ router.get('/assignments', async (req, res) => {
 
     const assignments = await Assignment.find({ vendorId: vendor._id })
       .populate('eventId', 'title date status')
-      .populate('vendorId', 'serviceType');
+      .populate({
+        path: 'vendorId',
+        populate: {
+          path: 'userId',
+          select: 'name email'
+        }
+      });
 
     res.json(assignments);
   } catch (err) {

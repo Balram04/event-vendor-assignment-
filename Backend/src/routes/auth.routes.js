@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Vendor = require('../models/Vendor');
 const { auth } = require('../middlewares/auth');
 const { validateSignUpData, validateLoginData } = require('../utils/validation');
 
@@ -15,14 +16,22 @@ router.post('/signup', async (req, res) => {
     const { name, email, password, role } = req.body;
 
     const existing = await User.findOne({ email });
-    
+
     if (existing) return res.status(400).json({ message: 'User already exists' });
 
     const hashed = await bcrypt.hash(password, 10);
 
     const user = await User.create({ name, email, password: hashed, role });
 
-    res.status(201).json({ message: 'User registered', user: { id: user._id, role: user.role } });
+    const responseMessage = role === 'vendor' 
+      ? 'User registered successfully. Your vendor profile will be created by the administrator. You will be able to login once your profile is complete.'
+      : 'User registered successfully';
+
+    res.status(201).json({ 
+      message: responseMessage, 
+      user: { id: user._id, role: user.role },
+      requiresProfileSetup: role === 'vendor'
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -49,6 +58,18 @@ router.post('/login', async (req, res) => {
     if (!isMatch) {
       console.log('Password mismatch for:', email);
       return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    // Check if vendor profile exists for vendor users
+    if (user.role === 'vendor') {
+      const vendorProfile = await Vendor.findOne({ userId: user._id });
+      if (!vendorProfile) {
+        console.log('Vendor profile not found for user:', user._id);
+        return res.status(403).json({ 
+          message: 'Your vendor profile has not been created yet. Please contact the administrator to complete your profile setup.',
+          profileIncomplete: true 
+        });
+      }
     }
 
     const token = jwt.sign(
