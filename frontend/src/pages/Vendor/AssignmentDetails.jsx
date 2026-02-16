@@ -315,17 +315,6 @@ const AssignmentDetails = () => {
                 </div>
               </div>
             )}
-
-            {/* Assignment Lifecycle Guide */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <h3 className="text-lg font-bold mb-3 text-blue-900">Assignment Lifecycle</h3>
-              <div className="space-y-2 text-sm text-blue-800">
-                <p><strong>Assigned:</strong> New assignment received - Accept or Reject</p>
-                <p><strong>Accepted:</strong> Work in progress - Mark as Complete when done</p>
-                <p><strong>Completed:</strong> Work finished - Awaiting admin evaluation</p>
-                <p><strong>Rejected:</strong> Assignment declined - No further action needed</p>
-              </div>
-            </div>
           </>
         )}
       </div>
