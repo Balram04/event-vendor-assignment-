@@ -14,15 +14,8 @@ router.get('/assignments', async (req, res) => {
     const vendor = await Vendor.findOne({ userId: req.user.userId });
     if (!vendor) return res.status(404).json({ message: 'Vendor profile not found' });
 
-    const assignments = await Assignment.find({ vendorId: vendor._id })
-      .populate('eventId', 'title date status')
-      .populate({
-        path: 'vendorId',
-        populate: {
-          path: 'userId',
-          select: 'name email'
-        }
-      });
+     const assignments = await Assignment.find({ vendorId: vendor._id })
+      .populate('eventId', 'title date status');
 
     res.json(assignments);
   } catch (err) {
