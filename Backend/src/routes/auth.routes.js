@@ -29,10 +29,8 @@ router.post('/signup', async (req, res) => {
 
     res.status(201).json({ 
       message: responseMessage, 
-      user: { id: user._id, role: user.role },
-      requiresProfileSetup: role === 'vendor'
     });
-  } catch (err) {
+  } catch (err) { 
     res.status(500).json({ message: err.message });
   }
 });
@@ -44,15 +42,12 @@ router.post('/login', async (req, res) => {
     validateLoginData(req);
     
     const { email, password } = req.body;
-    console.log('Login attempt for:', email);
 
     const user = await User.findOne({ email });
     if (!user) {
       console.log('User not found:', email);
       return res.status(400).json({ message: 'Invalid credentials' });
     }
-
-    console.log('User found:', { id: user._id, email: user.email, role: user.role });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -84,7 +79,7 @@ router.post('/login', async (req, res) => {
     const cookieOptions = {
       httpOnly: true,
       secure: false,
-      sameSite: 'lax',
+      sameSite: 'lax', //block traffic from other sites, but allow from same site 
       maxAge: 24 * 60 * 60 * 1000, // 1 day
       path: '/' // Cookie available on all routes
     };
