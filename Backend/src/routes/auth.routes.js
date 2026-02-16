@@ -29,6 +29,8 @@ router.post('/signup', async (req, res) => {
 
     res.status(201).json({ 
       message: responseMessage, 
+      userId: user._id, 
+      role: user.role 
     });
   } catch (err) { 
     res.status(500).json({ message: err.message });
@@ -80,9 +82,9 @@ router.post('/login', async (req, res) => {
       httpOnly: true,
       secure: false,
       sameSite: 'lax', //block traffic from other sites, but allow from same site 
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      path: '/' // Cookie available on all routes
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
     };
+       
     
     res.cookie('token', token, cookieOptions);
     
@@ -101,23 +103,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Check current authentication status
-router.get('/me', auth, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.userId).select('-password');
-    res.json({ 
-      authenticated: true,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
-    });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
 
 // Logout
 router.post('/logout', (req, res) => {
