@@ -42,7 +42,15 @@ router.post('/vendors', async (req, res) => {
   try {
     const { userId, serviceType } = req.body;  //using userId to link vendor profile to existing user because we already have role-based users
 
-    const vendor = await Vendor.create({ userId, serviceType });
+    // Ensure serviceType is an array
+    const services = Array.isArray(serviceType) ? serviceType : [serviceType];
+    
+    // Validate at least one service is selected
+    if (services.length === 0 || services.every(s => !s)) {
+      return res.status(400).json({ message: 'At least one service type must be selected' });
+    }
+
+    const vendor = await Vendor.create({ userId, serviceType: services });
 
     res.json(vendor);
   } catch (err) {

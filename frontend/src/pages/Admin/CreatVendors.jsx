@@ -7,7 +7,7 @@ const CreatVendors = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     userId: '',
-    serviceType: ''
+    serviceType: []
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -39,6 +39,15 @@ const CreatVendors = () => {
     }
   };
 
+  const handleServiceToggle = (service) => {
+    setFormData(prev => ({
+      ...prev,
+      serviceType: prev.serviceType.includes(service)
+        ? prev.serviceType.filter(s => s !== service)
+        : [...prev.serviceType, service]
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -48,7 +57,7 @@ const CreatVendors = () => {
     try {
       await api.post('/admin/vendors', formData);
       setSuccess('Vendor created successfully!');
-      setFormData({ userId: '', serviceType: '' });
+      setFormData({ userId: '', serviceType: [] });
       fetchData();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create vendor');
@@ -93,30 +102,45 @@ const CreatVendors = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Service Type
+              Service Types (Select one or more)
             </label>
-            <select
-              value={formData.serviceType}
-              onChange={(e) => setFormData({ ...formData, serviceType: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            >
-              <option value="">Choose a service...</option>
+            <div className="grid grid-cols-2 gap-3 p-4 border border-gray-300 rounded-lg bg-white">
               {serviceTypes.map((service) => (
-                <option key={service} value={service}>
-                  {service}
-                </option>
+                <label
+                  key={service}
+                  className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                >
+                  <input
+                    type="checkbox"
+                    checked={formData.serviceType.includes(service)}
+                    onChange={() => handleServiceToggle(service)}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">{service}</span>
+                </label>
               ))}
-            </select>
+            </div>
+            {formData.serviceType.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {formData.serviceType.map(service => (
+                  <span key={service} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-semibold">
+                    {service}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           <button
             type="submit"
-            disabled={loading || availableUsers.length === 0}
+            disabled={loading || availableUsers.length === 0 || formData.serviceType.length === 0}
             className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Creating...' : 'Create Vendor'}
           </button>
+          {formData.serviceType.length === 0 && (
+            <p className="text-sm text-red-500 mt-1">Please select at least one service type</p>
+          )}
         </form>
       </div>
 
@@ -129,7 +153,7 @@ const CreatVendors = () => {
               <tr>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Name</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Email</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Service Type</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Service Types</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Performance</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Events Handled</th>
               </tr>
@@ -147,9 +171,19 @@ const CreatVendors = () => {
                     <td className="px-4 py-3 text-sm font-medium">{vendor.userId?.name || 'N/A'}</td>
                     <td className="px-4 py-3 text-sm">{vendor.userId?.email || 'N/A'}</td>
                     <td className="px-4 py-3 text-sm">
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-semibold">
-                        {vendor.serviceType}
-                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {Array.isArray(vendor.serviceType) && vendor.serviceType.length > 0 ? (
+                          vendor.serviceType.map((service, index) => (
+                            <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-semibold">
+                              {service}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-semibold">
+                            {vendor.serviceType || 'N/A'}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${
