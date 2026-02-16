@@ -37,11 +37,24 @@ router.get('/events', async (req, res) => {
   }
 });
 
+// Create Vendor Profile (map to existing user with role vendor)
+router.post('/vendors', async (req, res) => {
+  try {
+    const { userId, serviceType } = req.body;  //using userId to link vendor profile to existing user because we already have role-based users
+
+    const vendor = await Vendor.create({ userId, serviceType });
+
+    res.json(vendor);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Get all vendors
 router.get('/vendors', async (req, res) => {
   try {
     const vendors = await Vendor.find()
-      .populate('userId', 'name email')
+      .populate('userId', 'name email')  //populate user details in vendor list from user collection
       .sort({ createdAt: -1 });
     res.json(vendors);
   } catch (err) {
@@ -89,20 +102,6 @@ router.get('/assignments', async (req, res) => {
   }
 });
 
-
-// Create Vendor Profile (map to existing user with role vendor)
-router.post('/vendors', async (req, res) => {
-  try {
-    const { userId, serviceType } = req.body;  //using userId to link vendor profile to existing user because we already have role-based users
-
-    const vendor = await Vendor.create({ userId, serviceType });
-
-    res.json(vendor);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
 // Assign Vendor to Event
 router.post('/assignments', async (req, res) => {
   try {
@@ -122,7 +121,7 @@ router.post('/assignments', async (req, res) => {
 
     res.json(assignment);
   } catch (err) {
-    // Duplicate assignment case
+    // Duplicate assignment case error code is 11000 in MongoDB
     if (err.code === 11000) {
       return res.status(400).json({ message: 'Vendor already assigned to this event' });
     }
@@ -141,6 +140,13 @@ router.patch('/events/:id/status', async (req, res) => {
 
     // If trying to mark event as completed, check all assignments
     if (status === 'completed') {
+
+      const totalAssignments = await Assignment.countDocuments({ eventId });
+        if (totalAssignments === 0) {
+         return res.status(400).json({
+      message: 'Cannot complete event without any vendor assignments'
+    });
+  }
       const pending = await Assignment.find({
         eventId,
         status: { $nin: ['completed', 'rejected'] }
@@ -191,7 +197,7 @@ router.post('/assignments/:id/evaluate', async (req, res) => {
     const totalScore = completedAssignments.reduce((sum, a) => sum + a.score, 0);
     const avgScore = totalScore / completedAssignments.length;
 
-    vendor.performanceScore = avgScore;
+    vendor.performanceScore = avgScore;  
     vendor.totalEventsHandled = completedAssignments.length;
     await vendor.save();
 
